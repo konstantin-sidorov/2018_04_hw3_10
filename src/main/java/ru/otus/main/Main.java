@@ -15,13 +15,13 @@ import java.util.List;
 
 
 public class Main {
-    public static CacheEngine cache;
+    private CacheEngine cache;
 
     public static void main(String[] args) throws InterruptedException {
         int size = 3;
-        //cache = new CacheEngineImpl<>(size, 0, 0, true);
-        //cache = new CacheEngineImpl<>(size, 1006, 0, false);
-        cache = new CacheEngineImpl<>(size, 0, 1020, false);
+        //CacheEngineImpl cache = new CacheEngineImpl<>(size, 0, 0, true);
+        //CacheEngineImpl cache = new CacheEngineImpl<>(size, 1006, 0, false);
+        CacheEngineImpl cache = new CacheEngineImpl<>(size, 0, 900, false);
         DataSet u1 = new UserDataSet(1,
                 "Даша", 25, new AddressDataSet("Ленина ул."),
                 Arrays.asList(new PhoneDataSet("45-48-44"), new PhoneDataSet("11-11-11"))
@@ -33,10 +33,8 @@ public class Main {
         DataSet u3 = new UserDataSet(3, "Паша", 43, new AddressDataSet("Арбат ул."),
                 Arrays.asList(new PhoneDataSet("33-33-33"), new PhoneDataSet("yy-yy-yy")));
 
-        DBService db = new DBServiceImpl();
-       /*db.save(u1);
-       db.save(u2);
-       db.save(u3);*/
+        DBService db = new DBServiceImpl(cache);
+
         List<DataSet> users = new ArrayList<>();
         users.add(u1);
         users.add(u2);
@@ -59,15 +57,6 @@ public class Main {
 
         System.out.println("Cache hits: " + cache.getHitCount());
         System.out.println("Cache misses: " + cache.getMissCount());
-       /*
-       DataSet u4=db.loadUser(2,UserDataSet.class);
-       System.out.println("Прочитали по id: " +u4);
-       DataSet u5= db.readByName("Даша",UserDataSet.class);
-       System.out.println("Прочитали по имени: " + u5);
-       List<UserDataSet> dataSets = db.readAll(UserDataSet.class);
-       for (UserDataSet userDataSet : dataSets) {
-           System.out.println(userDataSet);
-       }*/
 
         db.shutdown();
         System.out.println("OKeY");

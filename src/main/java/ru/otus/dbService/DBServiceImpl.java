@@ -4,6 +4,8 @@ package ru.otus.dbService;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
+import ru.otus.cache.CacheElement;
+import ru.otus.cache.CacheEngine;
 import ru.otus.dataBase.DBConnection;
 import ru.otus.dataSets.DataSet;
 
@@ -13,9 +15,11 @@ import java.util.function.Function;
 
 public class DBServiceImpl implements DBService {
     private final DBConnection factory;
+    private final CacheEngine cache;
 
-    public DBServiceImpl() {
+    public DBServiceImpl(CacheEngine cache) {
         this.factory = new DBConnection();
+        this.cache = cache;
     }
 
     public SessionFactory getConnection() {
@@ -32,7 +36,8 @@ public class DBServiceImpl implements DBService {
         try (Session session = getConnection().openSession()) {
             UserDataSetDAO dao = new UserDataSetDAO(session);
             dao.save(dataSet);
-            //session.save(dataSet);
+            CacheElement<T> elem = new CacheElement<>(dataSet);
+            cache.put(elem);
         }
     }
 
@@ -47,6 +52,10 @@ public class DBServiceImpl implements DBService {
 
     @Override
     public <T extends DataSet> T read(long id, Class<T> clazz) {
+        CacheElement<T> cacheElem = (CacheElement<T>) this.cache.get(id);
+        if (cacheElem != null) {
+            return cacheElem.getObj();
+        }
         return runInSession(session -> {
             UserDataSetDAO dao = new UserDataSetDAO(session);
             return dao.read(id, clazz);
@@ -76,12 +85,18 @@ public class DBServiceImpl implements DBService {
                 //session.save(user);
                 UserDataSetDAO dao = new UserDataSetDAO(session);
                 dao.save(user);
+                CacheElement<T> elem = new CacheElement<>((T) user);
+                cache.put(elem);
             }
         }
     }
 
     @Override
     public <T extends DataSet> T loadUser(long id, Class<T> clazz) {
+        CacheElement<T> cacheElem = (CacheElement<T>) this.cache.get(id);
+        if (cacheElem != null) {
+            return cacheElem.getObj();
+        }
         return runInSession(session -> {
             UserDataSetDAO dao = new UserDataSetDAO(session);
             return dao.read(id, clazz);

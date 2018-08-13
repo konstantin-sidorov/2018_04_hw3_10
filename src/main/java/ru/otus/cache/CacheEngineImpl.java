@@ -27,39 +27,23 @@ public class CacheEngineImpl<T extends DataSet> implements CacheEngine<T> {
         this.lifeTimeMs = lifeTimeMs > 0 ? lifeTimeMs : 0;
         this.idleTimeMs = idleTimeMs > 0 ? idleTimeMs : 0;
         this.isEternal = lifeTimeMs == 0 && idleTimeMs == 0 || isEternal;
-       /*
-       так ловим : concurrentmodificationexception
-       if (!isEternal) {
-           if (lifeTimeMs != 0) {
-               TimerTask lifeTimerTask = getTimerTask(lifeElement -> lifeElement.getCreationTime() + lifeTimeMs);
-               timer.schedule(lifeTimerTask,0, lifeTimeMs);
-           }
-           if (idleTimeMs != 0) {
-               TimerTask idleTimerTask = getTimerTask(idleElement -> idleElement.getLastAccessTime() + idleTimeMs);
-               timer.schedule(idleTimerTask, idleTimeMs, idleTimeMs);
-           }
-       }
-       */
     }
 
     private TimerTask getTimerTask(final Long key, Function<CacheElement<T>, Long> timeFunction) {
         return new TimerTask() {
             @Override
             public void run() {
-                //System.out.println("запущен таймер");
-                //for (Long key : elements.keySet()) {
+
                 SoftReference<CacheElement<T>> reference = elements.get(key);
                 if (reference != null) {
-                    //CacheElement<T> element = reference.get();
+
                     CacheElement<T> element = reference.get();
-                    //System.out.println("перебор element:" +element.getObj());
+
                     if (element == null || isT1BeforeT2(timeFunction.apply(element), System.currentTimeMillis())) {
                         elements.remove(key);
                         this.cancel();
-                        //System.out.println("удалил element:" +element.getObj());
                     }
                 }
-                //}
             }
         };
     }

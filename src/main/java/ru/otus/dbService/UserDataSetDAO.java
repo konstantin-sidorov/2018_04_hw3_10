@@ -3,9 +3,7 @@ package ru.otus.dbService;
 
 import org.hibernate.Session;
 import org.hibernate.query.Query;
-import ru.otus.cache.CacheElement;
 import ru.otus.dataSets.DataSet;
-import ru.otus.main.Main;
 
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
@@ -20,21 +18,12 @@ public class UserDataSetDAO {
     }
 
     public <T extends DataSet> T read(long id, Class<T> clazz) {
-        CacheElement<T> cacheElem = (CacheElement<T>) Main.cache.get(id);
-        if (cacheElem != null) {
-            //System.out.println("Прочитали из кеша!");
-            return cacheElem.getObj();
-        }
         T obj = session.load(clazz, id);
-        CacheElement<T> elem = new CacheElement<>(obj);
-        Main.cache.put(elem);
         return obj;
     }
 
     public <T extends DataSet> void save(T dataSet) {
         session.save(dataSet);
-        //CacheElement<T> elem = new CacheElement<>(dataSet);
-        //Main.cache.put(elem);
     }
 
     public <T extends DataSet> T readByName(String name, Class<T> clazz) {
